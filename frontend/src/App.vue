@@ -121,14 +121,14 @@ async function sendForm() {
 
       <transition name="fade">
         <div v-if="result" class="success">
-          <h3>✅ Заявка отправлена</h3>
+          <h3>Заявка отправлена</h3>
 
           <p>
             {{ result.message }}
           </p>
 
           <div v-if="result.ai_analysis" class="ai-card">
-            <h4>🤖 AI Analysis</h4>
+            <h4>AI Analysis</h4>
 
             <div class="ai-row">
               <span> Sentiment </span>
