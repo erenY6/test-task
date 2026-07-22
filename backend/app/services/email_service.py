@@ -1,8 +1,9 @@
 import logging
 import smtplib
-import asyncio
+import ssl
 
 from email.message import EmailMessage
+from email.utils import formataddr
 
 from app.core.config import settings
 
@@ -12,6 +13,7 @@ logger = logging.getLogger("portfolio-api")
 
 class EmailService:
 
+
     async def send_email(
         self,
         recipient: str,
@@ -19,59 +21,49 @@ class EmailService:
         body: str
     ) -> bool:
 
-        if not settings.SMTP_USER:
-            logger.warning(
-                "SMTP is not configured. Email skipped."
-            )
-            return False
-
-
         try:
 
-            result = await asyncio.wait_for(
-                asyncio.to_thread(
-                    self._send_sync_email,
-                    recipient,
-                    subject,
-                    body
-                ),
-                timeout=10
+            self._send_sync(
+                recipient,
+                subject,
+                body
             )
 
-            return result
-
-
-        except asyncio.TimeoutError:
-
-            logger.error(
-                "Email sending timeout"
+            logger.info(
+                f"Email sent successfully: {recipient}"
             )
 
-            return False
+            return True
 
 
         except Exception as error:
 
             logger.exception(
-                f"Email error: {error}"
+                f"Email failed: {error}"
             )
 
             return False
 
 
 
-    def _send_sync_email(
+    def _send_sync(
         self,
         recipient: str,
         subject: str,
         body: str
-    ) -> bool:
-
+    ):
 
         message = EmailMessage()
 
-        message["From"] = settings.SMTP_USER
+        message["From"] = formataddr(
+            (
+                "Portfolio Bot",
+                settings.SMTP_USER
+            )
+        )
+
         message["To"] = recipient
+
         message["Subject"] = subject
 
 
@@ -81,14 +73,25 @@ class EmailService:
         )
 
 
-        with smtplib.SMTP(
+        logger.info(
+            f"SMTP connect {settings.SMTP_HOST}:{settings.SMTP_PORT}"
+        )
+
+
+        context = ssl.create_default_context()
+
+
+        with smtplib.SMTP_SSL(
             settings.SMTP_HOST,
-            settings.SMTP_PORT,
-            timeout=10
+            int(settings.SMTP_PORT),
+            timeout=20,
+            context=context
         ) as server:
 
 
-            server.starttls()
+            logger.info(
+                "SMTP SSL connected"
+            )
 
 
             server.login(
@@ -97,15 +100,19 @@ class EmailService:
             )
 
 
-            server.send_message(message)
+            logger.info(
+                "SMTP login OK"
+            )
 
 
-        logger.info(
-            f"Email sent to {recipient}"
-        )
+            server.send_message(
+                message
+            )
 
 
-        return True
+            logger.info(
+                "SMTP send OK"
+            )
 
 
 

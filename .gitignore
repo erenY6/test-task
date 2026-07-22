@@ -24,7 +24,9 @@ dist-ssr
 *.sw?
 
 .env
-.enw.local
+frontend/.enw.local
+frontend/node_modules/
+frontend/dist/
 venv/
 __pycache__/
 *.pyc
