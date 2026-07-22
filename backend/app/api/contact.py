@@ -1,11 +1,11 @@
 from fastapi import APIRouter
 
-from backend.app.models.contact import (
+from app.models.contact import (
     ContactRequest,
     ContactResponse
 )
 
-from backend.app.services.contact_service import contact_service
+from app.services.contact_service import contact_service
 
 
 router = APIRouter()

@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from backend.app.services.metrics_service import metrics_service
+from app.services.metrics_service import metrics_service
 
 
 router = APIRouter()

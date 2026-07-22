@@ -1,12 +1,12 @@
 import logging
 
-from backend.app.models.contact import ContactRequest
+from app.models.contact import ContactRequest
 
-from backend.app.services.ai_service import ai_service
-from backend.app.services.email_service import email_service
-from backend.app.services.metrics_service import metrics_service
+from app.services.ai_service import ai_service
+from app.services.email_service import email_service
+from app.services.metrics_service import metrics_service
 
-from backend.app.core.config import settings
+from app.core.config import settings
 
 
 logger = logging.getLogger("portfolio-api")

@@ -1,15 +1,15 @@
 from fastapi import FastAPI
 
-from backend.app.core.logger import logger
+from app.core.logger import logger
 import time
 import logging
 from fastapi import Request
 
-from backend.app.api import health
-from backend.app.api.contact import router as contact_router
-from backend.app.api.metrics import router as metrics_router
-from backend.app.core.config import settings
-from backend.app.core.exceptions import register_exception_handlers
+from app.api import health
+from app.api.contact import router as contact_router
+from app.api.metrics import router as metrics_router
+from app.core.config import settings
+from app.core.exceptions import register_exception_handlers
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(

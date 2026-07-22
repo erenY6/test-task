@@ -3,7 +3,7 @@ import logging
 
 from openai import AsyncOpenAI
 
-from backend.app.core.config import settings
+from app.core.config import settings
 
 
 logger = logging.getLogger("portfolio-api")
