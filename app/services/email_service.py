@@ -1,5 +1,7 @@
 import logging
 import smtplib
+import asyncio
+
 from email.message import EmailMessage
 
 from app.core.config import settings
@@ -23,38 +25,30 @@ class EmailService:
             )
             return False
 
+
         try:
 
-            message = EmailMessage()
-
-            message["From"] = settings.SMTP_USER
-            message["To"] = recipient
-            message["Subject"] = subject
-
-            message.set_content(
-                body,
-                charset="utf-8"
+            result = await asyncio.wait_for(
+                asyncio.to_thread(
+                    self._send_sync_email,
+                    recipient,
+                    subject,
+                    body
+                ),
+                timeout=10
             )
 
-            with smtplib.SMTP(
-                settings.SMTP_HOST,
-                settings.SMTP_PORT
-            ) as server:
+            return result
 
-                server.starttls()
 
-                server.login(
-                    settings.SMTP_USER,
-                    settings.SMTP_PASSWORD
-                )
+        except asyncio.TimeoutError:
 
-                server.send_message(message)
-
-            logger.info(
-                f"Email sent to {recipient}"
+            logger.error(
+                "Email sending timeout"
             )
 
-            return True
+            return False
+
 
         except Exception as error:
 
@@ -63,6 +57,56 @@ class EmailService:
             )
 
             return False
+
+
+
+    def _send_sync_email(
+        self,
+        recipient: str,
+        subject: str,
+        body: str
+    ) -> bool:
+
+
+        message = EmailMessage()
+
+        message["From"] = settings.SMTP_USER
+        message["To"] = recipient
+        message["Subject"] = subject
+
+
+        message.set_content(
+            body,
+            charset="utf-8"
+        )
+
+
+        with smtplib.SMTP(
+            settings.SMTP_HOST,
+            settings.SMTP_PORT,
+            timeout=10
+        ) as server:
+
+
+            server.starttls()
+
+
+            server.login(
+                settings.SMTP_USER,
+                settings.SMTP_PASSWORD
+            )
+
+
+            server.send_message(message)
+
+
+        logger.info(
+            f"Email sent to {recipient}"
+        )
+
+
+        return True
+
 
 
 email_service = EmailService()

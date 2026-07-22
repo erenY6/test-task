@@ -23,11 +23,25 @@ class ContactService:
             f"New contact request from {contact.email}"
         )
 
+        # AI анализ
+        try:
+            ai_result = await ai_service.analyze_comment(
+                contact.comment
+            )
 
-        # 1. AI анализ комментария
-        ai_result = await ai_service.analyze_comment(
-            contact.comment
-        )
+        except Exception as e:
+            logger.error(
+                f"AI service error: {e}"
+            )
+
+            ai_result = {
+                "sentiment": "unknown",
+                "category": "other",
+                "reply": (
+                    "Спасибо за обращение. "
+                    "Мы свяжемся с вами в ближайшее время."
+                )
+            }
 
 
         logger.info(
@@ -50,47 +64,77 @@ Email:
 Комментарий:
 {contact.comment}
 
-------------------------
 
-AI анализ
+AI анализ:
 
 Тональность:
-{ai_result["sentiment"]}
+{ai_result.get("sentiment")}
 
 Категория:
-{ai_result["category"]}
+{ai_result.get("category")}
 
-Автоматический ответ пользователю:
-
-{ai_result["reply"]}
+Ответ:
+{ai_result.get("reply")}
 """
 
 
-        await email_service.send_email(
-            settings.OWNER_EMAIL,
-            "Новое обращение с сайта",
-            owner_message
-        )
+        # Отправка владельцу
+        try:
+            await email_service.send_email(
+                settings.OWNER_EMAIL,
+                "Новое обращение с сайта",
+                owner_message
+            )
+
+            logger.info(
+                "Owner email sent successfully"
+            )
+
+        except Exception as e:
+            logger.error(
+                f"Owner email error: {e}"
+            )
 
 
-        # 3. Письмо пользователю
         user_message = f"""
 Здравствуйте, {contact.name}!
 
-{ai_result["reply"]}
+Спасибо за ваше обращение.
+
+{ai_result.get("reply")}
 
 --
 Это автоматическое письмо.
 """
 
 
-        await email_service.send_email(
-            contact.email,
-            "Ваше обращение получено",
-            user_message
-        )
+        # Отправка пользователю
+        try:
+            await email_service.send_email(
+                contact.email,
+                "Ваше обращение получено",
+                user_message
+            )
 
-        metrics_service.success()   
+            logger.info(
+                "User email sent successfully"
+            )
+
+        except Exception as e:
+            logger.error(
+                f"User email error: {e}"
+            )
+
+
+        # статистика всегда увеличивается
+        try:
+            metrics_service.success()
+
+        except Exception as e:
+            logger.error(
+                f"Metrics error: {e}"
+            )
+
 
         return {
             "success": True,
